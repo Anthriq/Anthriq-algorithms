@@ -1,4 +1,4 @@
-# EEG_FeatureExtraction
+# featureExtraction
 
 Extracts 24 features per epoch per channel from any preprocessed EEG recording. Returns a flat pandas DataFrame ready for modelling, statistical analysis, or export.
 
@@ -64,9 +64,9 @@ Band powers are computed as the area under the PSD curve within each band using 
 ## Usage
 
 ```python
-from anthriq_eeg.EEG_Reader import load
-from anthriq_eeg.EEG_Preprocessing import preprocess
-from anthriq_eeg.EEG_FeatureExtraction import extract_features
+from eeg.utils.dataReader import load
+from eeg.utils.preprocessing import preprocess
+from eeg.utils.featureExtraction import extract_features
 
 data, meta = load("recording.edf")
 processed = preprocess(data, meta, line_freq=50)

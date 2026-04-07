@@ -1,5 +1,5 @@
 """
-anthriq_eeg.EEG_Preprocessing — Bandpass/notch filtering and event-based epoching.
+eeg.utils.preprocessing — Bandpass/notch filtering and event-based epoching.
 """
 
 from .preprocessor import preprocess

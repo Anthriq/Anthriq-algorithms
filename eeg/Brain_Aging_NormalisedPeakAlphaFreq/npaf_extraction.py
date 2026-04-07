@@ -45,8 +45,8 @@ class NPAFExtractor:
     """
     Extract normalised peak alpha frequency (N-PAF) from any supported EEG recording.
 
-    Uses the library's EEG_Reader for format detection and loading, so any
-    format accepted by anthriq_eeg.EEG_Reader (EDF, BDF, FIF, BrainVision,
+    Uses the library's dataReader for format detection and loading, so any
+    format accepted by eeg.utils.dataReader (EDF, BDF, FIF, BrainVision,
     EEGLab, MATLAB, CSV, TSV) works without additional configuration.
 
     Parameters
@@ -86,11 +86,11 @@ class NPAFExtractor:
         """
         Load an EEG file using the library's format-agnostic reader.
 
-        Delegates to anthriq_eeg.EEG_Reader.load(), which auto-detects the
+        Delegates to eeg.utils.dataReader.load(), which auto-detects the
         format from the file extension. Raises if the file contains pre-epoched
         data — N-PAF extraction requires continuous Raw data.
         """
-        from ..EEG_Reader import load as _load
+        from ..utils.dataReader import load as _load
         raw, _ = _load(path)
         if isinstance(raw, mne.BaseEpochs):
             raise ValueError(

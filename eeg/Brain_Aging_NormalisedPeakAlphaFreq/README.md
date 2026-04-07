@@ -1,6 +1,8 @@
-# Brain_Aging_NormalisedPeakAlphaFreq
+# Brain_Aging_normalisedPeakAlphaFreq
 
 N-PAF (Normalised Peak Alpha Frequency) pipeline for brain aging research. Covers two stages: per-subject biomarker extraction from raw EEG, and a full statistical analysis of N-PAF against age and cognitive reserve.
+
+**Input:** Resting-state continuous (non-epoched) EEG in any supported format (EDF, BDF, FIF, BrainVision, EEGLab, MATLAB, CSV, TSV). **Output:** `npaf_extraction.py` produces N-PAF — a per-subject spectral biomarker (Hz) extracted from posterior channels. `npaf_age_analysis.py` takes N-PAF values alongside age and cognitive scores and predicts brain age, producing correlation statistics and a summary figure.
 
 ---
 
@@ -26,7 +28,7 @@ The **Normalised PAF (N-PAF)** method improves on simple FFT-based peak detectio
 
 **Class:** `NPAFExtractor`
 
-Processes one or many EEG recordings and extracts N-PAF per subject. Accepts any format supported by the library's `EEG_Reader` — no format-specific configuration required.
+Processes one or many EEG recordings and extracts N-PAF per subject. Accepts any format supported by the library's `dataReader` — no format-specific configuration required.
 
 **Supported formats:** EDF, BDF, FIF, BrainVision (`.vhdr`), EEGLab (`.set`), MATLAB (`.mat`), CSV, TSV.
 
@@ -34,7 +36,7 @@ Processes one or many EEG recordings and extracts N-PAF per subject. Accepts any
 
 | Step | What happens |
 |---|---|
-| 1. Load | File loaded via `anthriq_eeg.EEG_Reader.load()` — format is auto-detected from extension. Pre-epoched files raise an error; N-PAF requires continuous Raw data. |
+| 1. Load | File loaded via `eeg.utils.dataReader.load()` — format is auto-detected from extension. Pre-epoched files raise an error; N-PAF requires continuous Raw data. |
 | 2. Channel selection | Posterior channels selected: P3, P4, P7, P8, Pz, O1, O2, Oz. Only channels present in the file are used. |
 | 3. Segment extraction | Continuous data is split at `boundary` annotations. Segments shorter than `min_segment_sec` (default 2 s) are discarded. Remaining segments are concatenated. |
 | 4. AR spectrum | Each channel is demeaned. Yule-Walker AR model (order 256) is fitted via `statsmodels`. The transfer function `H(z) = σ / A(z)` is evaluated using `scipy.signal.freqz` at 4096 points, then interpolated onto a 0.1 Hz grid from 0.1 to 45 Hz. |
@@ -78,7 +80,7 @@ Per-subject result dict keys:
 #### Usage
 
 ```python
-from anthriq_eeg.Brain_Aging_NormalisedPeakAlphaFreq import NPAFExtractor
+from eeg.Brain_Aging_normalisedPeakAlphaFreq import NPAFExtractor
 
 extractor = NPAFExtractor()
 
@@ -106,11 +108,11 @@ CLI:
 
 ```bash
 # Process all supported files in a directory
-python -m anthriq_eeg.Brain_Aging_NormalisedPeakAlphaFreq.npaf_extraction \
+python -m eeg.Brain_Aging_normalisedPeakAlphaFreq.npaf_extraction \
     ./CleanData ./Results
 
 # Filter by pattern
-python -m anthriq_eeg.Brain_Aging_NormalisedPeakAlphaFreq.npaf_extraction \
+python -m eeg.Brain_Aging_normalisedPeakAlphaFreq.npaf_extraction \
     ./CleanData ./Results --pattern "subject*_cleaned.bdf" --model_order 256
 ```
 
@@ -168,7 +170,7 @@ Reference results on this dataset:
 #### Usage
 
 ```python
-from anthriq_eeg.Brain_Aging_NormalisedPeakAlphaFreq import run_npaf_age_analysis
+from eeg.Brain_Aging_normalisedPeakAlphaFreq import run_npaf_age_analysis
 import numpy as np
 
 # Own data
@@ -189,7 +191,7 @@ print(f"Partial r (N-PAF vs NART | Age): {results['r_partial']:.3f}, p = {result
 CLI (from CSV with columns `age`, `nart`, `npaf`):
 
 ```bash
-python -m anthriq_eeg.Brain_Aging_NormalisedPeakAlphaFreq.npaf_age_analysis \
+python -m eeg.Brain_Aging_normalisedPeakAlphaFreq.npaf_age_analysis \
     --csv npaf_summary.csv --out_dir ./Results --figure npaf_analysis.png
 ```
 
@@ -199,7 +201,7 @@ python -m anthriq_eeg.Brain_Aging_NormalisedPeakAlphaFreq.npaf_age_analysis \
 
 | Package | Used for |
 |---|---|
-| `mne>=1.6` | File loading (via EEG_Reader), annotation handling |
+| `mne>=1.6` | File loading (via dataReader), annotation handling |
 | `numpy>=1.24` | Array operations, gradient computation |
 | `scipy>=1.11` | `signal.freqz` for AR transfer function evaluation, `stats.pearsonr`, `stats.linregress` |
 | `statsmodels>=0.14` | Yule-Walker AR estimation (`regression.linear_model.yule_walker`) |

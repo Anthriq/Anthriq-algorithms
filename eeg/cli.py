@@ -14,9 +14,9 @@ from pathlib import Path
 
 import click
 
-from .EEG_Reader import load
-from .EEG_Preprocessing import preprocess
-from .EEG_FeatureExtraction import extract_features
+from .utils.dataReader import load
+from .utils.preprocessing import preprocess
+from .utils.featureExtraction import extract_features
 
 
 # ---------------------------------------------------------------------------

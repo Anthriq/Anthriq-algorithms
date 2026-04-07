@@ -1,5 +1,5 @@
 """
-anthriq_eeg.EEG_FeatureExtraction — 24-feature extraction across time, frequency, and nonlinear domains.
+eeg.utils.featureExtraction — 24-feature extraction across time, frequency, and nonlinear domains.
 """
 
 from .features import extract_features

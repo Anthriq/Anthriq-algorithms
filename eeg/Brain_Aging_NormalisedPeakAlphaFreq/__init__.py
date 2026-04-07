@@ -1,5 +1,5 @@
 """
-anthriq_eeg.Brain_Aging_NormalisedPeakAlphaFreq — N-PAF pipeline.
+eeg.Brain_Aging_normalisedPeakAlphaFreq — N-PAF pipeline.
 
 Modules:
     npaf_extraction    — per-subject N-PAF extraction from EEGLab .set files

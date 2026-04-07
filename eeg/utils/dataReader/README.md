@@ -1,4 +1,4 @@
-# EEG_Reader
+# dataReader
 
 Format-agnostic EEG data loader. Point it at any supported EEG file and it returns a clean MNE object and a metadata dictionary — no configuration required.
 
@@ -63,7 +63,7 @@ A formatted summary is printed to the console on every call.
 ## Usage
 
 ```python
-from anthriq_eeg.EEG_Reader import load
+from eeg.utils.dataReader import load
 
 data, meta = load("recording.edf")
 

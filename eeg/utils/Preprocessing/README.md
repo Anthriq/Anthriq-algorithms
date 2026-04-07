@@ -1,4 +1,4 @@
-# EEG_Preprocessing
+# preprocessing
 
 Standard EEG preprocessing pipeline: bandpass filtering, notch filtering, and event-based epoching. Operates on any MNE Raw or Epochs object returned by the reader.
 
@@ -52,8 +52,8 @@ Returns `mne.io.BaseRaw` or `mne.BaseEpochs` depending on whether epoching was t
 ## Usage
 
 ```python
-from anthriq_eeg.EEG_Reader import load
-from anthriq_eeg.EEG_Preprocessing import preprocess
+from eeg.utils.dataReader import load
+from eeg.utils.preprocessing import preprocess
 
 data, meta = load("recording.edf")
 
