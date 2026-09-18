@@ -1,0 +1,21 @@
+{
+  "TaskName": "alpha",
+  "Manufacturer": "n/a",
+  "PowerLineFrequency": 50.0,
+  "SamplingFrequency": 1000.0,
+  "SoftwareFilters": "n/a",
+  "RecordingDuration": 164.999,
+  "RecordingType": "continuous",
+  "EEGReference": "Cz",
+  "EEGGround": "T7",
+  "EEGPlacementScheme": "10-20",
+  "EEGChannelCount": 2,
+  "EOGChannelCount": 0,
+  "ECGChannelCount": 0,
+  "EMGChannelCount": 0,
+  "MiscChannelCount": 0,
+  "TriggerChannelCount": 0,
+  "ManufacturersModelName": "n/a",
+  "TaskDescription": "Sit still with eyes closed for 30 s, then open the eyes and fixate for 10 s. Repeated three times.",
+  "CapManufacturer": "n/a"
+}

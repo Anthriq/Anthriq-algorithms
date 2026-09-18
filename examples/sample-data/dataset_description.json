@@ -1,0 +1,10 @@
+{
+  "Name": "Anthriq EXG sample recordings",
+  "BIDSVersion": "1.9.0",
+  "DatasetType": "raw",
+  "License": "CC0-1.0",
+  "Authors": [
+    "Anthriq Research Team"
+  ],
+  "HowToAcknowledge": "Please cite the Anthriq Algorithms repository: https://github.com/Anthriq/Anthriq-algorithms"
+}

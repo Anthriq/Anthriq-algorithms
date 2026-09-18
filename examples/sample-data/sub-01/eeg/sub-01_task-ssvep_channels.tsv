@@ -1,0 +1,5 @@
+﻿name	type	units	low_cutoff	high_cutoff	description	sampling_frequency	status	status_description
+O1	EEG	V	0.0	1562.5	ElectroEncephaloGram	3125.0	good	n/a
+O2	EEG	V	0.0	1562.5	ElectroEncephaloGram	3125.0	good	n/a
+Fpz	EEG	V	0.0	1562.5	ElectroEncephaloGram	3125.0	good	n/a
+StimTrig	TRIG	V	0.0	1562.5	Trigger	3125.0	good	n/a

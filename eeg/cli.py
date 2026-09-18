@@ -15,8 +15,8 @@ from pathlib import Path
 import click
 
 from .utils.dataReader import load
-from .utils.preprocessing import preprocess
-from .utils.featureExtraction import extract_features
+from .utils.FeatureExtraction import extract_features
+from .utils.Preprocessing import preprocess
 
 
 # ---------------------------------------------------------------------------

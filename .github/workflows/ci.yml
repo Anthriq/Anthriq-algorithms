@@ -1,0 +1,66 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    # Ubuntu deliberately: its filesystem is case-sensitive, so an import whose
+    # capitalisation does not match the directory on disk fails here and passes
+    # on macOS. That class of bug is invisible to anyone developing on a Mac.
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy scipy matplotlib pytest
+
+      - name: Tests
+        env:
+          MPLBACKEND: Agg  # no display on a runner
+        run: python -m pytest tests/ -q
+
+      - name: Scripts run end to end
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python scripts/synth.py alpha /tmp/a
+          python scripts/alpha.py /tmp/a --sites O1,O2
+          python scripts/synth.py ssvep /tmp/s --stim-freq 12
+          python scripts/ssvep.py /tmp/s --stim-freq 12 --sites O1,O2 --control Fpz
+          python scripts/synth.py emg /tmp/e
+          python scripts/emg.py /tmp/e --sites EMG1,EMG2
+          python scripts/synth.py cmrr /tmp/c
+          python scripts/cmrr.py /tmp/c --monitor Mod_9234/ai0 --fs 2000
+
+      - name: The shipped sample data still analyses
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python scripts/alpha.py \
+            examples/sample-data/sub-01/eeg/sub-01_task-alpha_eeg.vhdr \
+            --sites O1,O2 --no-plot
+          python scripts/ssvep.py \
+            examples/sample-data/sub-01/eeg/sub-01_task-ssvep_eeg.vhdr \
+            --stim-freq 17 --sites O1,O2 --control Fpz \
+            --stim-marker flicker17 --epoch 8 --no-plot
+
+      - name: Figures were written
+        run: |
+          test -f /tmp/a/alpha_reactivity.png
+          test -f /tmp/s/ssvep_response.png
+          test -f /tmp/e/emg_bursts.png
+          test -f /tmp/c/cmrr_vs_frequency.png

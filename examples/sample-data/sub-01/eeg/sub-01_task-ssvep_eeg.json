@@ -1,0 +1,21 @@
+{
+  "TaskName": "ssvep",
+  "Manufacturer": "n/a",
+  "PowerLineFrequency": 50.0,
+  "SamplingFrequency": 3125.0,
+  "SoftwareFilters": "n/a",
+  "RecordingDuration": 119.99968,
+  "RecordingType": "continuous",
+  "EEGReference": "Cz",
+  "EEGGround": "T7",
+  "EEGPlacementScheme": "10-20",
+  "EEGChannelCount": 3,
+  "EOGChannelCount": 0,
+  "ECGChannelCount": 0,
+  "EMGChannelCount": 0,
+  "MiscChannelCount": 0,
+  "TriggerChannelCount": 1,
+  "ManufacturersModelName": "n/a",
+  "TaskDescription": "Fixate a square flickering at 17 Hz for 15 s, then rest on a blank screen for 5 s. Repeated three times.",
+  "CapManufacturer": "n/a"
+}

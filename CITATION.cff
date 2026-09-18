@@ -1,0 +1,26 @@
+# Citation metadata, read by GitHub and by reference managers.
+# GitHub renders a "Cite this repository" button from this file.
+#
+# This matters more than the licence for keeping the work attributed: a licence
+# cannot reach a paper's acknowledgements, but a citation convention can.
+cff-version: 1.2.0
+title: Anthriq Algorithms
+message: If you use this software in published work, please cite it.
+type: software
+authors:
+  - name: "Research Team, Anthriq (Nexstem India Private Limited)"
+    website: https://anthriq.com
+repository-code: https://github.com/Anthriq/Anthriq-algorithms
+abstract: >-
+  Open-source biosignal (EXG) analysis scripts for EEG, ECG, EMG and EOG
+  recordings, covering alpha reactivity, steady-state visually evoked
+  potentials, and common-mode rejection measurement.
+keywords:
+  - eeg
+  - exg
+  - biosignal
+  - electrophysiology
+  - brain-computer-interface
+license: Apache-2.0
+version: 1.0.0
+date-released: "2026-09-18"
