@@ -262,3 +262,22 @@ def test_bids_alpha_recovers_the_generated_ground_truth(tmp_path):
     results = alpha_script.analyse(load(folder), ["O1"])
     assert results["reactivity_ratio"] == pytest.approx(16.0, rel=0.15)
     assert results["peak_frequency_hz"] == pytest.approx(truth["alpha_freq_hz"], abs=0.1)
+
+
+def test_a_byte_order_mark_does_not_hide_the_events(tmp_path):
+    """Some BIDS writers prefix a TSV with a UTF-8 byte-order mark.
+
+    Read as plain UTF-8, that mark lands on the front of the first column
+    name, so "onset" arrives as "﻿onset". Every lookup of "onset" then
+    returns nothing and the events load as an empty list -- no error, no
+    warning, just a recording that appears to have no events. This was found
+    against a real mne-bids export, not against a fixture.
+    """
+    root, _ = make_dataset(tmp_path, markers=[("rest", 1.0, 2.0)])
+    events = next(root.glob("sub-*/eeg/*_events.tsv"))
+    events.write_bytes(b"\xef\xbb\xbf" + events.read_bytes())
+
+    recording = read_bids_recording(next(root.glob("sub-*/eeg/*_eeg.vhdr")))
+    assert len(recording.markers) == 1
+    assert recording.markers[0].name == "rest"
+    assert recording.markers[0].onset == pytest.approx(1.0)

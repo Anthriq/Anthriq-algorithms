@@ -1,0 +1,39 @@
+# Anthriq EXG sample recordings
+
+Two short EEG recordings, published so that the analysis scripts in
+Anthriq-algorithms can be run against real data rather than only against
+synthetic signals.
+
+## What is here
+
+| Task | Date | Channels | Rate | Epochs |
+|---|---|---|---|---|
+| alpha | 2026-01-07 | O1, O2 | 1000 Hz | 6 |
+| ssvep | 2026-04-14 | O1, O2, Fpz, StimTrig | 3125 Hz | 6 |
+
+**alpha** — eyes closed against eyes open, three times. The occipital alpha
+rhythm appears when the eyes close and largely disappears when they open.
+
+**ssvep** — a square flickering at 17 Hz, fifteen seconds at a time with rest
+between. The occipital response follows the stimulus frequency. The `StimTrig`
+channel carries the flicker itself, one pulse per cycle, so the stimulus rate
+can be confirmed independently of the EEG.
+
+## Recording
+
+Dry electrodes at the 10-20 positions listed above, referenced to Cz with the
+ground at T7. Signals were amplified before digitisation; the values here are
+referred back to the electrode, in volts as BIDS requires. Mains is 50 Hz.
+
+Epoch onsets were recovered from a digital line that pulses at the start of
+every epoch, so the times in `events.tsv` are measured rather than assumed
+from the intended schedule.
+
+## Subject
+
+One adult subject, who recorded the sessions and consented to their public
+release. No demographic information is included.
+
+## Licence
+
+CC0 1.0 — public domain dedication. Use it for anything.

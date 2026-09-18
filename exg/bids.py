@@ -90,8 +90,15 @@ def _read_tsv(path: Path) -> list[dict[str, str]]:
 
     BIDS uses TSV rather than CSV throughout, and writes a literal ``n/a`` for
     a missing value.
+
+    Opened as ``utf-8-sig`` rather than ``utf-8`` because some writers prefix
+    the file with a byte-order mark. Read as plain UTF-8, that mark becomes an
+    invisible character on the front of the first column name, so ``onset``
+    arrives as ``\\ufeffonset`` and every lookup of it silently returns
+    nothing -- the events load as an empty list rather than as an error.
+    ``utf-8-sig`` strips the mark if present and is harmless if it is not.
     """
-    with open(path, newline="", encoding="utf-8") as handle:
+    with open(path, newline="", encoding="utf-8-sig") as handle:
         return list(csv.DictReader(handle, delimiter="\t"))
 
 

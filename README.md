@@ -25,6 +25,12 @@ The generator prints the ground truth it used. Compare it with what the
 analysis reports — that is the only way to tell a working pipeline from a
 broken one.
 
+Real recordings are included too, so you can see what actual EEG looks like:
+
+```bash
+python scripts/alpha.py examples/sample-data/sub-01/eeg/sub-01_task-alpha_eeg.vhdr --sites O1,O2
+```
+
 ## The analyses
 
 | Script | Measures | Needs |
@@ -172,6 +178,8 @@ exg/                The shared parts, kept out of the scripts to avoid
 ├── bids.py         BIDS and BrainVision, spectral estimation,
 ├── spectra.py      figure styling
 └── plotting.py
+examples/
+└── sample-data/    Two real recordings, in BIDS format
 tests/              Ground-truth tests. Worth reading as worked examples.
 eeg/                An earlier EEG feature-extraction package (see below)
 ```
@@ -179,6 +187,26 @@ eeg/                An earlier EEG feature-extraction package (see below)
 `exg/` exists because the file readers and the spectral functions are shared by
 every analysis, and four copies would drift apart. Everything else lives in the
 script that uses it.
+
+## Sample data
+
+`examples/sample-data/` holds two real EEG recordings from one consenting
+adult, published under CC0. They are in BIDS format, about 7 MB in total:
+
+| Task | Channels | Rate | What is in it |
+|---|---|---|---|
+| `alpha` | O1, O2 | 1000 Hz | Eyes closed against eyes open, three times |
+| `ssvep` | O1, O2, Fpz | 3125 Hz | A 17 Hz flicker, fifteen seconds at a time |
+
+The SSVEP recording is worth a closer look than the alpha one. Its `StimTrig`
+channel carries the flicker itself, one pulse per cycle, and measuring it shows
+the display actually ran at **16.72 Hz** rather than the 17 Hz it was asked
+for. A screen builds a flickering stimulus from whole frames, so it can only
+present its refresh rate divided by a whole number, and 17 does not divide into
+60. The analysis finds its peak at 16.72 Hz, which is the display being
+honestly measured rather than the analysis being wrong.
+
+That is a better thing to learn from than a clean result.
 
 ## Units
 
