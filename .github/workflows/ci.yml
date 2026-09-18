@@ -41,11 +41,26 @@ jobs:
           python scripts/alpha.py /tmp/a --sites O1,O2
           python scripts/synth.py ssvep /tmp/s --stim-freq 12
           python scripts/ssvep.py /tmp/s --stim-freq 12 --sites O1,O2 --control Fpz
+          python scripts/synth.py emg /tmp/e
+          python scripts/emg.py /tmp/e --sites EMG1,EMG2
           python scripts/synth.py cmrr /tmp/c
           python scripts/cmrr.py /tmp/c --monitor Mod_9234/ai0 --fs 2000
+
+      - name: The shipped sample data still analyses
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python scripts/alpha.py \
+            examples/sample-data/sub-01/eeg/sub-01_task-alpha_eeg.vhdr \
+            --sites O1,O2 --no-plot
+          python scripts/ssvep.py \
+            examples/sample-data/sub-01/eeg/sub-01_task-ssvep_eeg.vhdr \
+            --stim-freq 17 --sites O1,O2 --control Fpz \
+            --stim-marker flicker17 --epoch 8 --no-plot
 
       - name: Figures were written
         run: |
           test -f /tmp/a/alpha_reactivity.png
           test -f /tmp/s/ssvep_response.png
+          test -f /tmp/e/emg_bursts.png
           test -f /tmp/c/cmrr_vs_frequency.png
