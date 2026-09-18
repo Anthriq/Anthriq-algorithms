@@ -247,6 +247,13 @@ pip install mne statsmodels
 python -m eeg.cli --help
 ```
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Short version: your data and whatever
+you build with these are yours, there is no contributor agreement to sign, and
+the only thing the licence asks is that derived software carries the `NOTICE`
+attribution.
+
 ## Licence
 
 Apache License 2.0. Copyright 2026 Nexstem India Private Limited, trading as
