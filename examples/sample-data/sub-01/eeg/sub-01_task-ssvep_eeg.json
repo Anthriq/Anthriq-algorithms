@@ -15,7 +15,7 @@
   "EMGChannelCount": 0,
   "MiscChannelCount": 0,
   "TriggerChannelCount": 1,
+  "ManufacturersModelName": "n/a",
   "TaskDescription": "Fixate a square flickering at 17 Hz for 15 s, then rest on a blank screen for 5 s. Repeated three times.",
-  "CapManufacturer": "n/a",
-  "ManufacturersModelName": "n/a"
+  "CapManufacturer": "n/a"
 }

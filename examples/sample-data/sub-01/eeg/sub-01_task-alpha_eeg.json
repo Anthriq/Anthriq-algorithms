@@ -15,7 +15,7 @@
   "EMGChannelCount": 0,
   "MiscChannelCount": 0,
   "TriggerChannelCount": 0,
+  "ManufacturersModelName": "n/a",
   "TaskDescription": "Sit still with eyes closed for 30 s, then open the eyes and fixate for 10 s. Repeated three times.",
-  "CapManufacturer": "n/a",
-  "ManufacturersModelName": "n/a"
+  "CapManufacturer": "n/a"
 }
