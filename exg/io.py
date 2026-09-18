@@ -657,9 +657,22 @@ def load_daq_csv(
         information, and a wrong rate silently rescales every frequency in every
         result, so there is deliberately no default.
     gain : float
-        Total amplifier gain between electrode and converter. The analogue
-        columns are divided by it to recover the voltage at the electrode. Left
-        at 1.0, amplitudes are converter-referred and a note records that.
+        Total amplifier gain between the electrode and the converter. The
+        analogue columns are divided by it to recover the voltage at the
+        electrode.
+
+        **Check this against your own hardware.** A raw capture holds the
+        voltage the converter saw, which is the electrode voltage multiplied by
+        whatever the front end applied -- commonly somewhere between 24 and
+        2000, depending on the amplifier. Leaving it at 1.0 reports
+        converter-referred amplitudes, and the note on the returned recording
+        says so. An error here scales every amplitude by the same factor, and a
+        hundredfold error in EEG lands squarely in the range of real surface
+        EMG, so nothing looks obviously wrong.
+
+        Software that already applied the gain when exporting needs no gain
+        here. If in doubt, check that resting EEG comes out at tens of
+        microvolts rather than millivolts.
     unit : str
         Unit of the analogue columns before the gain division. Raw DAQ captures
         are in volts, which is the default.

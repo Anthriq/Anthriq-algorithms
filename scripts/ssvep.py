@@ -17,6 +17,21 @@ This script compares flicker against rest and reports:
   * signal-to-noise ratio at the fundamental and its harmonics
   * the phase-locking value, which is a different question from power
 
+SAFETY: screen every subject before running a flicker experiment
+----------------------------------------------------------------
+Flickering visual stimuli can trigger seizures in people with photosensitive
+epilepsy, most often **between 15 and 25 Hz** -- a band this paradigm uses.
+Before presenting any flicker, ask each subject to confirm they have no history
+of photosensitive epilepsy, seizures, or migraine with visual aura, and run it
+only once they have.
+
+End the session if a subject reports discomfort, dizziness, nausea, or visual
+disturbance. Keep sessions short, keep the room lit, and tell each subject they
+can stop at any time. Carry this warning into any handout a class works from.
+
+This script only analyses a recording that already exists, so it presents
+nothing itself -- but whoever recorded the data needed to have read this.
+
 Usage
 -----
     python scripts/ssvep.py my_recording/ --stim-freq 12 --sites O1,O2
@@ -36,6 +51,31 @@ good whether or not a response existed -- you would be measuring the largest
 thing in the spectrum and calling it a response. The stimulus frequency is
 something you know from how you set up the experiment, so you state it, and the
 analysis then tests a claim that could fail.
+
+Choosing a flicker frequency
+----------------------------
+If you are designing the experiment rather than analysing someone else's, the
+choice of frequency is not free. Four constraints, none of them about any
+particular amplifier:
+
+* **Near 10 Hz collides with alpha**, which is strongest at the same occipital
+  sites. A response there is hard to tell from a spontaneous rhythm.
+* **25 Hz and 16.7 Hz are subharmonics of 50 Hz mains** (20 Hz and 12 Hz of
+  60 Hz), so interference lands exactly on the response.
+* **Above about 30 Hz the response weakens** and muscle activity rises.
+* **Check the second harmonic too.** 12 Hz gives 24 Hz, comfortably clear of
+  mains.
+
+**Monitor refresh quantises what you can actually present.** A screen builds the
+stimulus from whole frames, so the only rates it displays exactly are its
+refresh rate divided by a whole number. A 60 Hz monitor gives 30, 20, 15, 12,
+10 and 8.57 Hz; a 120 Hz monitor adds 24 and 17.1 Hz. Ask for 13 Hz on a 60 Hz
+screen and the display alternates between nearby rates, which smears the peak
+and weakens the response. Check the refresh rate first, then pick a frequency
+that divides into it evenly.
+
+12 Hz and 15 Hz are good defaults on a 60 Hz screen: both display exactly, sit
+clear of alpha, and their harmonics avoid mains.
 
 Power versus phase locking
 --------------------------
@@ -91,7 +131,11 @@ from exg.spectra import (  # noqa: E402
     welch_psd,
 )
 
-# An SNR at or below this is not worth calling a response.
+# Interpretation bands for the harmonic SNR, in dB. These describe the
+# statistic rather than any particular amplifier, so they travel between
+# setups: above ~6 dB the response is well clear of the surrounding spectrum,
+# 3-6 dB is usable but wants more trials, and below 3 dB is not distinguishable
+# from the neighbourhood it is being compared against.
 SNR_STRONG_DB = 6.0
 SNR_USABLE_DB = 3.0
 

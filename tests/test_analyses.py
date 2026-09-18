@@ -22,6 +22,7 @@ sys.path.insert(0, str(REPO / "scripts"))
 
 import alpha as alpha_script  # noqa: E402
 import cmrr as cmrr_script  # noqa: E402
+import emg as emg_script  # noqa: E402
 import ssvep as ssvep_script  # noqa: E402
 import synth  # noqa: E402
 
@@ -280,6 +281,107 @@ def test_cmrr_needs_a_directory(tmp_path):
     path.write_text("ai0\n0.1\n")
     with pytest.raises(NotADirectoryError, match="one capture"):
         cmrr_script.analyse(path, fs=2000.0, monitor="ai0")
+
+
+# --------------------------------------------------------------------------
+# EMG
+# --------------------------------------------------------------------------
+
+def test_emg_finds_every_contraction(tmp_path):
+    folder, truth = synth.make_emg(tmp_path / "e", seed=0)
+    results = emg_script.analyse(load(folder), ["EMG1"])
+    assert results["n_bursts"] == truth["n_contractions"]
+
+
+def test_emg_amplitude_rises_with_force(tmp_path):
+    """The core teaching point: more force recruits more motor units."""
+    folder, _ = synth.make_emg(
+        tmp_path / "e", grip_amplitudes_uv=(150.0, 450.0, 1200.0), seed=1
+    )
+    results = emg_script.analyse(load(folder), ["EMG1"])
+    peaks = [b["peak_envelope_uv"] for b in results["bursts"]]
+    assert peaks == sorted(peaks)
+    # The generated amplitudes span 8x, so the measured ones should span
+    # several-fold too even after band-limiting.
+    assert peaks[-1] / peaks[0] > 4.0
+
+
+def test_emg_contractions_stand_clear_of_rest(tmp_path):
+    folder, _ = synth.make_emg(tmp_path / "e", seed=2)
+    results = emg_script.analyse(load(folder), ["EMG1"])
+    assert results["baseline_rms_uv"] > 0
+    for burst in results["bursts"]:
+        assert burst["peak_envelope_uv"] > 3 * results["baseline_rms_uv"]
+
+
+def test_emg_onsets_land_where_they_were_generated(tmp_path):
+    """10 s baseline, then 5 s grips separated by 5 s of rest."""
+    folder, _ = synth.make_emg(
+        tmp_path / "e", baseline_seconds=10.0, grip_seconds=5.0,
+        rest_seconds=5.0, seed=3,
+    )
+    results = emg_script.analyse(load(folder), ["EMG1"])
+    onsets = [b["onset_s"] for b in results["bursts"]]
+    for measured, expected in zip(onsets, (10.0, 20.0, 30.0)):
+        assert measured == pytest.approx(expected, abs=0.3)
+
+
+def test_emg_detects_the_fatigue_shift(tmp_path):
+    """Median frequency must fall when conduction velocity is modelled falling.
+
+    Amplitude alone cannot show fatigue -- it often rises as the subject
+    recruits harder. The spectral shift is what distinguishes the two.
+    """
+    folder, _ = synth.make_emg(tmp_path / "e", fatigue_shift_hz=15.0, seed=4)
+    results = emg_script.analyse(load(folder), ["EMG1"])
+    medians = [b["median_frequency_hz"] for b in results["bursts"]]
+    assert medians[0] - medians[-1] > 8.0
+
+
+def test_emg_median_frequency_is_stable_without_fatigue(tmp_path):
+    folder, _ = synth.make_emg(tmp_path / "e", fatigue_shift_hz=0.0, seed=5)
+    results = emg_script.analyse(load(folder), ["EMG1"])
+    medians = [b["median_frequency_hz"] for b in results["bursts"]]
+    assert max(medians) - min(medians) < 12.0
+
+
+def test_emg_envelope_is_the_same_length_as_the_signal(tmp_path):
+    """An envelope offset from its signal would shift every reported onset."""
+    folder, _ = synth.make_emg(tmp_path / "e", seed=6)
+    results = emg_script.analyse(load(folder), ["EMG1"])
+    assert len(results["_envelope"]) == len(results["_signal"])
+
+
+def test_emg_rms_envelope_recovers_a_known_amplitude():
+    """A sinusoid of peak amplitude A has RMS A/sqrt(2)."""
+    fs = 1000.0
+    t = np.arange(int(fs * 5)) / fs
+    signal = 100.0 * np.sin(2 * np.pi * 50.0 * t)
+    envelope = emg_script.rms_envelope(signal, fs, window_ms=100.0)
+    # Away from the edges, where the padding has no influence.
+    assert np.median(envelope[500:-500]) == pytest.approx(100.0 / np.sqrt(2), rel=0.05)
+
+
+def test_emg_finds_nothing_in_a_resting_recording(tmp_path):
+    """A recording with no contractions must report none.
+
+    A detector that finds bursts in resting muscle would make every session
+    look successful, which is the failure mode worth guarding.
+    """
+    folder, _ = synth.make_emg(
+        tmp_path / "e", grip_amplitudes_uv=(), baseline_seconds=30.0, seed=7
+    )
+    results = emg_script.analyse(load(folder), ["EMG1"])
+    assert results["n_bursts"] == 0
+
+
+def test_emg_features_are_all_present(tmp_path):
+    folder, _ = synth.make_emg(tmp_path / "e", seed=8)
+    results = emg_script.analyse(load(folder), ["EMG1"])
+    for key in ("rms_uv", "mean_absolute_uv", "waveform_length_uv",
+                "zero_crossings_per_s", "median_frequency_hz"):
+        assert key in results["bursts"][0]
+        assert np.isfinite(results["bursts"][0][key])
 
 
 # --------------------------------------------------------------------------

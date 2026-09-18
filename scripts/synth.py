@@ -287,6 +287,91 @@ def make_ssvep(
     return folder, truth
 
 
+def make_emg(
+    out: Path,
+    *,
+    fs: float = 2000.0,
+    baseline_seconds: float = 10.0,
+    grip_seconds: float = 5.0,
+    rest_seconds: float = 5.0,
+    grip_amplitudes_uv: tuple[float, ...] = (150.0, 450.0, 1200.0),
+    rest_amplitude_uv: float = 15.0,
+    median_freq_hz: float = 90.0,
+    fatigue_shift_hz: float = 0.0,
+    seed: int = 0,
+) -> tuple[Path, dict]:
+    """A grip sequence: rest, then contractions of increasing force.
+
+    Surface EMG is modelled as band-limited noise whose amplitude tracks force,
+    which is what it physically is -- the summed activity of many motor units
+    firing asynchronously, so the waveform has no consistent shape and only its
+    amplitude carries information.
+
+    ``fatigue_shift_hz`` lowers the spectral centre across successive
+    contractions, reproducing what happens as conduction velocity falls in a
+    tiring muscle. Left at zero, every contraction has the same spectrum.
+    """
+    from scipy import signal as sp_signal
+
+    rng = np.random.default_rng(seed)
+    channels = ["EMG1", "EMG2"]
+
+    segments: list[tuple[float, float, float]] = [
+        (baseline_seconds, rest_amplitude_uv, median_freq_hz)
+    ]
+    markers: list[tuple[str, float, float]] = []
+    cursor = baseline_seconds
+
+    for index, amplitude in enumerate(grip_amplitudes_uv):
+        # Each contraction sits a little lower in frequency than the last when
+        # fatigue is switched on.
+        centre = median_freq_hz - index * fatigue_shift_hz
+        segments.append((grip_seconds, amplitude, centre))
+        markers.append(("contraction", cursor, grip_seconds))
+        cursor += grip_seconds
+        segments.append((rest_seconds, rest_amplitude_uv, median_freq_hz))
+        cursor += rest_seconds
+
+    total = int(round(sum(seconds for seconds, _, _ in segments) * fs))
+    data = np.zeros((len(channels), total))
+
+    for ch in range(len(channels)):
+        offset = 0
+        for seconds, amplitude, centre in segments:
+            n = int(round(seconds * fs))
+            # Band-pass white noise around the centre frequency, then scale to
+            # the target RMS. The result has EMG's character: no shape, just
+            # amplitude.
+            low = max(5.0, centre - 60.0)
+            high = min(fs / 2 * 0.95, centre + 60.0)
+            sos = sp_signal.butter(4, [low, high], btype="bandpass", fs=fs, output="sos")
+            burst = sp_signal.sosfiltfilt(sos, rng.standard_normal(n))
+            std = np.std(burst)
+            if std > 0:
+                burst = burst / std * amplitude
+            # A second channel over the same muscle sees a similar but not
+            # identical signal.
+            weight = 1.0 if ch == 0 else 0.75
+            data[ch, offset:offset + n] = weight * burst
+            offset += n
+        # A little mains hum and drift, as any real recording carries.
+        t = np.arange(total) / fs
+        data[ch] += 3.0 * np.sin(2 * np.pi * 50.0 * t + rng.uniform(0, 2 * np.pi))
+        data[ch] += 5.0 * pink_noise(total, fs, rng, exponent=2.0)
+
+    folder = write_bxi_export(out, data, fs, channels, markers)
+
+    truth = {
+        "n_contractions": len(grip_amplitudes_uv),
+        "grip_amplitudes_uv_rms": grip_amplitudes_uv,
+        "rest_amplitude_uv_rms": rest_amplitude_uv,
+        "median_frequency_hz": median_freq_hz,
+        "fatigue_shift_per_contraction_hz": fatigue_shift_hz,
+        "sites": "EMG1,EMG2",
+    }
+    return folder, truth
+
+
 def make_cmrr(
     out: Path,
     *,
@@ -384,6 +469,14 @@ def main(argv: list[str] | None = None) -> int:
     p_ssvep.add_argument("--noise", type=float, default=8.0)
     p_ssvep.add_argument("--seed", type=int, default=0)
 
+    p_emg = sub.add_parser("emg", help="A grip sequence of increasing force.")
+    p_emg.add_argument("output")
+    p_emg.add_argument("--fs", type=float, default=2000.0)
+    p_emg.add_argument("--fatigue", type=float, default=0.0,
+                       help="Hz the median frequency drops per contraction. "
+                            "Non-zero simulates a fatiguing muscle.")
+    p_emg.add_argument("--seed", type=int, default=0)
+
     p_cmrr = sub.add_parser("cmrr", help="A common-mode rejection frequency sweep.")
     p_cmrr.add_argument("output")
     p_cmrr.add_argument("--fs", type=float, default=2000.0)
@@ -403,6 +496,11 @@ def main(argv: list[str] | None = None) -> int:
             Path(args.output), fs=args.fs, stim_freq=args.stim_freq,
             n_trials=args.trials, phase_jitter=args.phase_jitter,
             noise_uv=args.noise, seed=args.seed,
+        )
+    elif args.kind == "emg":
+        path, truth = make_emg(
+            Path(args.output), fs=args.fs,
+            fatigue_shift_hz=args.fatigue, seed=args.seed,
         )
     else:
         path, truth = make_cmrr(Path(args.output), fs=args.fs, gain=args.gain, seed=args.seed)

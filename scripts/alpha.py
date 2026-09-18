@@ -64,17 +64,24 @@ from exg.io import Recording, load  # noqa: E402
 from exg.plotting import save_figure, style_axes  # noqa: E402
 from exg.spectra import band_power, peak_in_band, welch_psd  # noqa: E402
 
-# The conventional alpha band. Some texts use 8-13 Hz instead, which shifts the
-# computed power slightly, so whichever you use, report it alongside the number.
-DEFAULT_ALPHA_BAND = (8.0, 12.0)
+# The alpha band, 8-13 Hz, as it is defined in the literature. Some sources
+# narrow it to 8-12, which shifts the computed power slightly, so whichever you
+# use, report it alongside the number. Change it with --band.
+DEFAULT_ALPHA_BAND = (8.0, 13.0)
 
-# Search a little wider than the band when hunting for the individual peak: a
-# genuine peak at 12.4 Hz should be found and reported, not clipped to 12.0.
-DEFAULT_PEAK_SEARCH = (7.0, 13.0)
+# Search a little wider than the band when hunting for the individual peak, so
+# a genuine peak near an edge is found and reported rather than clipped to it.
+DEFAULT_PEAK_SEARCH = (7.0, 14.0)
 
 # A peak this far above the local spectrum is worth calling a peak. Below it,
 # what you have is the ordinary 1/f slope of the background, not a rhythm.
 MIN_PEAK_PROMINENCE_DB = 3.0
+
+# A closed-to-open power ratio at or above this is a convincing Berger effect.
+# Ratios of 2x or more are common, and much larger ones are routine in a
+# relaxed subject with good occipital contact. This describes the phenomenon
+# rather than any particular amplifier, so it travels between setups.
+CLEAR_REACTIVITY_RATIO = 2.0
 
 
 def collect_condition(
@@ -213,7 +220,7 @@ def analyse(
     normalised = (power_closed - power_open) / total if total > 0 else float("nan")
 
     # Individual peak alpha frequency, from the eyes-closed spectrum where the
-    # rhythm is strongest. It differs between people (typically 8-12 Hz), is
+    # rhythm is strongest. It differs between people (typically 8-13 Hz), is
     # stable within a person across sessions, and drifts down slowly with age.
     peak_freq, peak_psd = peak_in_band(freqs_c, psd_c, *peak_search)
 
@@ -331,8 +338,9 @@ def report(results: dict) -> None:
 
     ratio = results["reactivity_ratio"]
     print()
-    if ratio >= 2.0:
-        print("  A ratio above 2x is a clear result: alpha is suppressed by eye opening.")
+    if ratio >= CLEAR_REACTIVITY_RATIO:
+        print(f"  A ratio above {CLEAR_REACTIVITY_RATIO:g}x is a clear result: alpha is "
+              "suppressed by eye opening.")
     elif ratio > 1.2:
         print("  A modest effect in the right direction. More data, or better electrode")
         print("  contact, would firm it up.")
@@ -374,10 +382,10 @@ def main(argv: list[str] | None = None) -> int:
                         help="Sample rate in Hz. Required for a bare CSV.")
     parser.add_argument("--gain", type=float, default=1.0,
                         help="Amplifier gain, for a raw DAQ capture. Default 1.")
-    parser.add_argument("--band", default="8,12",
-                        help="Alpha band edges in Hz. Default 8,12.")
-    parser.add_argument("--peak-search", default="7,13",
-                        help="Range to search for the individual peak. Default 7,13.")
+    parser.add_argument("--band", default="8,13",
+                        help="Alpha band edges in Hz. Default 8,13.")
+    parser.add_argument("--peak-search", default="7,14",
+                        help="Range to search for the individual peak. Default 7,14.")
     parser.add_argument("--closed-marker", default="eyes_closed",
                         help="Marker name for eyes-closed. Default eyes_closed.")
     parser.add_argument("--open-marker", default="eyes_open",
