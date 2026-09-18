@@ -1,3 +1,6 @@
+# Copyright 2026 Anthriq
+# Licensed under the Apache License, Version 2.0. See the LICENSE file.
+
 """
 Shared figure styling, so the three analyses produce a consistent set of plots.
 

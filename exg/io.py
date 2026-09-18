@@ -1,3 +1,6 @@
+# Copyright 2026 Anthriq
+# Licensed under the Apache License, Version 2.0. See the LICENSE file.
+
 """
 Loading biosignal recordings, and the markers that go with them.
 

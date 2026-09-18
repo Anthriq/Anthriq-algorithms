@@ -175,4 +175,12 @@ python -m eeg.cli --help
 
 ## Licence
 
-To be confirmed. Copyright Anthriq.
+Apache License 2.0. Copyright 2026 Anthriq. See [LICENSE](LICENSE) and
+[NOTICE](NOTICE).
+
+You may use, modify and redistribute this, including commercially. If you
+distribute a derivative work, section 4(d) of the licence requires you to carry
+the `NOTICE` file's attribution with it.
+
+If you use this in published work, please cite it — see
+[CITATION.cff](CITATION.cff).
