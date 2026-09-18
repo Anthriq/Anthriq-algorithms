@@ -175,8 +175,8 @@ python -m eeg.cli --help
 
 ## Licence
 
-Apache License 2.0. Copyright 2026 Anthriq. See [LICENSE](LICENSE) and
-[NOTICE](NOTICE).
+Apache License 2.0. Copyright 2026 Nexstem India Private Limited, trading as
+Anthriq. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
 
 You may use, modify and redistribute this, including commercially. If you
 distribute a derivative work, section 4(d) of the licence requires you to carry
