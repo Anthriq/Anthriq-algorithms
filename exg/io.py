@@ -772,6 +772,8 @@ def load(path: str | Path, *, fs: float | None = None, **kwargs) -> Recording:
 
     The choice is made from the *structure* of the input, never from its name:
 
+    * a ``.vhdr`` file                   -> a BIDS or BrainVision recording
+    * a BIDS dataset folder              -> its first EEG recording
     * a folder containing ``meta.json``  -> :func:`load_bxi_export`
     * a CSV with a sidecar ``meta.json`` -> :func:`load_bxi_export` on its folder
     * any other CSV                      -> :func:`load_daq_csv` (needs ``fs``)
@@ -792,18 +794,39 @@ def load(path: str | Path, *, fs: float | None = None, **kwargs) -> Recording:
     """
     path = Path(path).expanduser().resolve()
 
+    # Imported here rather than at module scope because exg.bids imports from
+    # this module, and a top-level import either way would be circular.
+    from .bids import find_bids_recordings, read_bids_recording
+
     if path.is_dir():
-        if not (path / "meta.json").is_file():
-            csvs = sorted(path.glob("*.csv"))
-            raise FileNotFoundError(
-                f"{path} is a folder with no meta.json, so it is not a BXI "
-                f"export. It holds {len(csvs)} CSV file(s); load one directly "
-                "with an explicit fs, or point at the export folder."
-            )
-        return load_bxi_export(path, **kwargs)
+        if (path / "meta.json").is_file():
+            return load_bxi_export(path, **kwargs)
+
+        # A BIDS dataset root, or a folder inside one.
+        recordings = find_bids_recordings(path) if (path / "dataset_description.json").is_file() \
+            else sorted(path.glob("*_eeg.vhdr"))
+        if recordings:
+            if len(recordings) > 1:
+                warnings.warn(
+                    f"{path} holds {len(recordings)} recordings; reading "
+                    f"{recordings[0].name}. Pass a single .vhdr to choose "
+                    "another, or use exg.bids.find_bids_recordings to list them.",
+                    stacklevel=2,
+                )
+            return read_bids_recording(recordings[0])
+
+        csvs = sorted(path.glob("*.csv"))
+        raise FileNotFoundError(
+            f"{path} is a folder, but it holds no meta.json (a BXI export) and "
+            f"no *_eeg.vhdr (a BIDS recording). It has {len(csvs)} CSV "
+            "file(s); load one directly with an explicit fs."
+        )
 
     if not path.is_file():
         raise FileNotFoundError(path)
+
+    if path.suffix.lower() == ".vhdr":
+        return read_bids_recording(path)
 
     if (path.parent / "meta.json").is_file():
         return load_bxi_export(path.parent, **kwargs)

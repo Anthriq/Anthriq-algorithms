@@ -402,7 +402,7 @@ def test_a_folder_without_meta_json_says_so(tmp_path):
     folder = tmp_path / "loose"
     folder.mkdir()
     (folder / "a.csv").write_text("ai0\n0.1\n")
-    with pytest.raises(FileNotFoundError, match="not a BXI"):
+    with pytest.raises(FileNotFoundError, match="no meta.json"):
         load(folder)
 
 

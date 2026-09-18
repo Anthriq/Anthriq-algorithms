@@ -1,8 +1,8 @@
 # Anthriq Algorithms
 
-Open-source biosignal analysis from Anthriq. These are readable, runnable
-scripts for analysing EXG recordings — EEG, ECG, EMG, EOG — starting with the
-experiments an xBud teaching kit is built around.
+Open-source biosignal analysis from Anthriq. Readable, runnable scripts for
+analysing EXG recordings — EEG, ECG, EMG, EOG — whatever hardware produced
+them.
 
 They are written to be **read**, not just run. Each script is a few hundred
 lines of commented NumPy and SciPy, and the comments explain the signal
@@ -31,8 +31,9 @@ broken one.
 |---|---|---|
 | `scripts/alpha.py` | Alpha reactivity: the rhythm that appears when you close your eyes | Two conditions, eyes closed and eyes open |
 | `scripts/ssvep.py` | Steady-state response to a flickering stimulus | Flicker and rest blocks, and the flicker frequency |
+| `scripts/emg.py` | Muscle activity: contraction strength and fatigue | A grip sequence, ideally with markers |
 | `scripts/cmrr.py` | Common-mode rejection of the amplifier itself | A bench rig: signal generator, resistors, no subject |
-| `scripts/synth.py` | Generates data with known answers for all three | Nothing |
+| `scripts/synth.py` | Generates data with known answers for all four | Nothing |
 
 Each takes `--help`.
 
@@ -60,6 +61,17 @@ strongest peak and then reported its signal-to-noise would look successful
 whether or not a response existed — it would be measuring the largest thing in
 the spectrum and calling it a response.
 
+### Surface EMG
+
+```bash
+python scripts/emg.py my_recording/ --sites EMG1,EMG2
+```
+
+Reports an RMS envelope, per-contraction amplitude, and median frequency across
+contractions. Amplitude alone cannot show fatigue, since it often rises as a
+subject recruits harder; the spectral shift is what distinguishes the two, so
+both are reported.
+
 ### Common-mode rejection
 
 ```bash
@@ -73,8 +85,24 @@ with frequency, often by tens of decibels across the band that matters.
 
 ## Input formats
 
-Two layouts are read, and the reader works out which is which from the
+Three layouts are read, and the reader works out which is which from the
 structure of what you point it at.
+
+### BIDS
+
+[BIDS](https://bids.neuroimaging.io) is the standard layout for shareable
+neuroscience data. A great deal of public EEG is published this way, so you can
+point these scripts at datasets nobody here recorded:
+
+```bash
+python scripts/alpha.py some_bids_dataset/ --sites O1,O2
+python scripts/alpha.py some_bids_dataset/sub-01/eeg/sub-01_task-alpha_eeg.vhdr --sites O1,O2
+```
+
+The signal is read from BrainVision files, the channel types from
+`*_channels.tsv`, and the conditions from `*_events.tsv`. Channels the dataset
+marks as triggers or miscellaneous are kept separate rather than mixed into the
+signal, so they cannot end up averaged into a region of interest by accident.
 
 ### BXI Studio export
 
@@ -114,25 +142,43 @@ Mod_9234/ai0,Mod_9234/ai1,Mod_9401/port0/line0
 - There is **no timestamp column**, so `--fs` is required. There is no default:
   a wrong sampling rate silently rescales every frequency in every result.
 
+## On MNE-Python, and what this repository is for
+
+[MNE-Python](https://mne.tools) does everything here and a great deal more, with
+a decade of validation behind it. If you are building something real, use it.
+
+These scripts exist for a different reason: so you can *see* how the analyses
+work. `welch_psd` in [exg/spectra.py](exg/spectra.py) is forty lines you can
+read, modify and argue with. Every choice in it — the window, the overlap, the
+detrending — is written down next to the code that makes it, along with why.
+That is the whole offering, and it is why the dependencies stop at NumPy, SciPy
+and Matplotlib: a reader you have to install a toolkit to use is just a worse
+interface to the toolkit.
+
+The natural path is to outgrow this. Read these, understand what the numbers
+mean, then move to MNE knowing what it is doing on your behalf.
+
 ## Repository layout
 
 ```text
 scripts/            The analyses. Read these.
 ├── alpha.py
 ├── ssvep.py
+├── emg.py
 ├── cmrr.py
 └── synth.py        Generates data with known answers
 exg/                The shared parts, kept out of the scripts to avoid
-├── io.py           triplicating them: readers and marker decoding,
-├── spectra.py      spectral estimation, figure styling
+├── io.py           duplicating them: readers and marker decoding,
+├── bids.py         BIDS and BrainVision, spectral estimation,
+├── spectra.py      figure styling
 └── plotting.py
 tests/              Ground-truth tests. Worth reading as worked examples.
 eeg/                An earlier EEG feature-extraction package (see below)
 ```
 
 `exg/` exists because the file readers and the spectral functions are shared by
-all three analyses, and three copies would drift apart. Everything else lives
-in the script that uses it.
+every analysis, and four copies would drift apart. Everything else lives in the
+script that uses it.
 
 ## Units
 
